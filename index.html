@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Estudiantes, Notas y Asignaturas</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f3f4f6;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background-color: #00d0d7;
+    color: white;
+    text-align: center;
+    padding: 15px;
+  }
+  section {
+    max-width: 900px;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  }
+  h2 {
+    color: #d70064;
+    border-bottom: 2px solid #0078d7;
+    padding-bottom: 5px;
+  }
+  input, select, button {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background-color: #c1d700;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #0094a8;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+  }
+  th {
+    background-color: #0078d7;
+    color: white;
+  }
+  .acciones button {
+    width: auto;
+    margin: 0 3px;
+    padding: 5px 10px;
+  }
+  footer {
+    text-align: center;
+    background-color: #0078d7;
+    color: white;
+    padding: 15px;
+    font-size: 16px;
+    margin-top: 30px;
+    border-top: 3px solid #a88f00;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logoie.jpg" alt="">
+  <h1> Registro Académico con LocalStorage</h1>
+</header>
+
+<section id="registroEstudiantes">
+  <h2>Registrar Estudiante</h2>
+  <input type="text" id="nombreEstudiante" placeholder="Nombre del estudiante">
+  <input type="text" id="dniEstudiante" placeholder="DNI del estudiante">
+  <button onclick="agregarEstudiante()">Registrar Estudiante</button>
+
+  <table id="tablaEstudiantes">
+    <thead>
+      <tr><th>Nombre</th><th>DNI</th><th>Acciones</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="registroAsignaturas">
+  <h2>Registrar Asignatura</h2>
+  <input type="text" id="nombreAsignatura" placeholder="Nombre de la asignatura">
+  <button onclick="agregarAsignatura()">Registrar Asignatura</button>
+
+  <table id="tablaAsignaturas">
+    <thead>
+      <tr><th>Asignatura</th><th>Acciones</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="registroNotas">
+  <h2>Registrar Notas</h2>
+  <select id="selectEstudiante"></select>
+  <select id="selectAsignatura"></select>
+  <input type="number" id="nota" placeholder="Nota" min="0" max="20">
+  <button onclick="agregarNota()">Registrar Nota</button>
+
+  <table id="tablaNotas">
+    <thead>
+      <tr><th>Estudiante</th><th>Asignatura</th><th>Nota</th><th>Acciones</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<footer>
+  💻 Creado por <strong>Xiomara Yamele</strong> © 2025
+</footer>
+
+<script>
+  let estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
+  let asignaturas = JSON.parse(localStorage.getItem('asignaturas')) || [];
+  let notas = JSON.parse(localStorage.getItem('notas')) || [];
+
+  function guardarDatos() {
+    localStorage.setItem('estudiantes', JSON.stringify(estudiantes));
+    localStorage.setItem('asignaturas', JSON.stringify(asignaturas));
+    localStorage.setItem('notas', JSON.stringify(notas));
+  }
+
+  // --- ESTUDIANTES ---
+  function agregarEstudiante() {
+    const nombre = document.getElementById('nombreEstudiante').value.trim();
+    const dni = document.getElementById('dniEstudiante').value.trim();
+    if (!nombre || !dni) return alert('Completa todos los campos');
+    estudiantes.push({ nombre, dni });
+    guardarDatos();
+    mostrarEstudiantes();
+    actualizarSelects();
+    document.getElementById('nombreEstudiante').value = '';
+    document.getElementById('dniEstudiante').value = '';
+  }
+
+  function mostrarEstudiantes() {
+    const tbody = document.querySelector('#tablaEstudiantes tbody');
+    tbody.innerHTML = '';
+    estudiantes.forEach((e, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${e.nombre}</td>
+          <td>${e.dni}</td>
+          <td class="acciones">
+            <button onclick="editarEstudiante(${i})">✏️</button>
+            <button onclick="eliminarEstudiante(${i})">🗑️</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function editarEstudiante(i) {
+    const nuevoNombre = prompt('Nuevo nombre:', estudiantes[i].nombre);
+    const nuevoDni = prompt('Nuevo DNI:', estudiantes[i].dni);
+    if (nuevoNombre && nuevoDni) {
+      estudiantes[i] = { nombre: nuevoNombre, dni: nuevoDni };
+      guardarDatos();
+      mostrarEstudiantes();
+      actualizarSelects();
+    }
+  }
+
+  function eliminarEstudiante(i) {
+    if (confirm('¿Eliminar estudiante?')) {
+      estudiantes.splice(i, 1);
+      guardarDatos();
+      mostrarEstudiantes();
+      actualizarSelects();
+    }
+  }
+
+  // --- ASIGNATURAS ---
+  function agregarAsignatura() {
+    const nombre = document.getElementById('nombreAsignatura').value.trim();
+    if (!nombre) return alert('Ingresa el nombre de la asignatura');
+    asignaturas.push({ nombre });
+    guardarDatos();
+    mostrarAsignaturas();
+    actualizarSelects();
+    document.getElementById('nombreAsignatura').value = '';
+  }
+
+  function mostrarAsignaturas() {
+    const tbody = document.querySelector('#tablaAsignaturas tbody');
+    tbody.innerHTML = '';
+    asignaturas.forEach((a, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${a.nombre}</td>
+          <td class="acciones">
+            <button onclick="editarAsignatura(${i})">✏️</button>
+            <button onclick="eliminarAsignatura(${i})">🗑️</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function editarAsignatura(i) {
+    const nuevoNombre = prompt('Nuevo nombre de asignatura:', asignaturas[i].nombre);
+    if (nuevoNombre) {
+      asignaturas[i].nombre = nuevoNombre;
+      guardarDatos();
+      mostrarAsignaturas();
+      actualizarSelects();
+    }
+  }
+
+  function eliminarAsignatura(i) {
+    if (confirm('¿Eliminar asignatura?')) {
+      asignaturas.splice(i, 1);
+      guardarDatos();
+      mostrarAsignaturas();
+      actualizarSelects();
+    }
+  }
+
+  // --- NOTAS ---
+  function agregarNota() {
+    const estudianteIndex = document.getElementById('selectEstudiante').value;
+    const asignaturaIndex = document.getElementById('selectAsignatura').value;
+    const nota = parseFloat(document.getElementById('nota').value);
+    if (estudianteIndex === '' || asignaturaIndex === '' || isNaN(nota)) return alert('Completa todos los campos');
+    notas.push({
+      estudiante: estudiantes[estudianteIndex].nombre,
+      asignatura: asignaturas[asignaturaIndex].nombre,
+      nota
+    });
+    guardarDatos();
+    mostrarNotas();
+    document.getElementById('nota').value = '';
+  }
+
+  function mostrarNotas() {
+    const tbody = document.querySelector('#tablaNotas tbody');
+    tbody.innerHTML = '';
+    notas.forEach((n, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${n.estudiante}</td>
+          <td>${n.asignatura}</td>
+          <td>${n.nota}</td>
+          <td class="acciones">
+            <button onclick="editarNota(${i})">✏️</button>
+            <button onclick="eliminarNota(${i})">🗑️</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function editarNota(i) {
+    const nuevaNota = prompt('Nueva nota:', notas[i].nota);
+    if (nuevaNota !== null) {
+      notas[i].nota = parseFloat(nuevaNota);
+      guardarDatos();
+      mostrarNotas();
+    }
+  }
+
+  function eliminarNota(i) {
+    if (confirm('¿Eliminar nota?')) {
+      notas.splice(i, 1);
+      guardarDatos();
+      mostrarNotas();
+    }
+  }
+
+  function actualizarSelects() {
+    const selectEstudiante = document.getElementById('selectEstudiante');
+    const selectAsignatura = document.getElementById('selectAsignatura');
+    selectEstudiante.innerHTML = '<option value="">Seleccione estudiante</option>';
+    selectAsignatura.innerHTML = '<option value="">Seleccione asignatura</option>';
+    estudiantes.forEach((e, i) => selectEstudiante.innerHTML += `<option value="${i}">${e.nombre}</option>`);
+    asignaturas.forEach((a, i) => selectAsignatura.innerHTML += `<option value="${i}">${a.nombre}</option>`);
+  }
+
+  // Inicializar datos
+  mostrarEstudiantes();
+  mostrarAsignaturas();
+  mostrarNotas();
+  actualizarSelects();
+</script>
+
+</body>
+</html>
+
